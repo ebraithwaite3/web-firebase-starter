@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
+import { Google } from '@mui/icons-material';
 
 /**
  * Reusable authentication form component
@@ -41,7 +42,7 @@ const AuthForm = ({ isLogin = true }) => {
   const [error, setError] = useState('');
 
   // Hooks for authentication, theming, and navigation
-  const { login, signup } = useAuth();
+  const { login, signup, signInWithGoogle } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
 
@@ -54,6 +55,22 @@ const AuthForm = ({ isLogin = true }) => {
       [e.target.name]: e.target.value
     }));
     setError(''); // Clear error when user starts typing
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      await signInWithGoogle();
+      console.log('Google sign-in successful, redirecting to dashboard');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setError('Failed to sign in with Google. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -313,6 +330,51 @@ const AuthForm = ({ isLogin = true }) => {
             >
               {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
             </Button>
+
+            {/* Divider */}
+<Box sx={{ 
+  display: 'flex', 
+  alignItems: 'center', 
+  margin: '1rem 0',
+  '&::before, &::after': {
+    content: '""',
+    flex: 1,
+    height: '1px',
+    backgroundColor: theme.border,
+  }
+}}>
+  <Typography variant="body2" sx={{ 
+    padding: '0 1rem', 
+    color: theme.textSecondary 
+  }}>
+    or
+  </Typography>
+</Box>
+
+{/* Google Sign-In Button */}
+<Button
+  fullWidth
+  variant="outlined"
+  onClick={handleGoogleSignIn}
+  disabled={loading}
+  startIcon={<Google />}
+  sx={{
+    marginBottom: 2,
+    padding: 1.5,
+    borderColor: theme.border,
+    color: theme.textPrimary,
+    '&:hover': {
+      borderColor: theme.primary,
+      backgroundColor: theme.primary + '10',
+    },
+    '&:disabled': {
+      borderColor: theme.textSecondary,
+      color: theme.textSecondary,
+    },
+  }}
+>
+  {loading ? 'Loading...' : `Continue with Google`}
+</Button>
 
             {/* Toggle between login/signup */}
             <Box sx={{ textAlign: 'center' }}>

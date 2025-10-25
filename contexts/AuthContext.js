@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
@@ -185,6 +185,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
+ * Google Sign-In function
+ * Uses Firebase's Google Auth Provider with popup flow
+ * Automatically creates user document if first-time signup
+ */
+const signInWithGoogle = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    
+    // Check if this is a new user and create document if needed
+    if (result.user) {
+      await createUserDocument(result.user, result.user.displayName || 'User');
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+    throw error;
+  }
+};
+
+  /**
    * Context value object containing all auth state and methods
    * Available to any component that uses useAuth() hook
    */
@@ -195,6 +217,7 @@ export const AuthProvider = ({ children }) => {
     logout, // Logout function
     loading, // Loading state boolean
     createUserDocument, // Helper function for creating user docs
+    signInWithGoogle, // Google sign-in function
     APP_CONFIG, // Export config so other components can use collection names
   };
 
